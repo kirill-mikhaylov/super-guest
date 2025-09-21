@@ -12,6 +12,12 @@ interface AgendaItem {
   activity: string;
 }
 
+interface ScoringEntry {
+  participant_id: string;
+  score: number;
+  explanation: string;
+}
+
 interface Attendee {
   id: string;
   event_id: string;
@@ -37,6 +43,7 @@ interface Attendee {
   networking_goals?: string;
   past_events?: string[];
   score?: number;
+  scoreExplanation?: string;
   
   // Payment Information
   payment_status?: string;
@@ -89,6 +96,7 @@ export default function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(true);
   const [scoreLoading, setScoreLoading] = useState(false);
+  const [scoreError, setScoreError] = useState<boolean>(false);
   const [event, setEvent] = useState<Event | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const router = useRouter();
@@ -190,6 +198,31 @@ export default function EventDetails() {
     );
   }
 
+  // Helper function to strip markdown from JSON response
+  const stripMarkdownAndParseJSON = (text: string) => {
+    try {
+      // Remove markdown code block markers
+      let cleanedText = text.trim();
+      
+      // Remove opening ```json or ``` markers
+      cleanedText = cleanedText.replace(/^```json\s*/i, '');
+      cleanedText = cleanedText.replace(/^```\s*/, '');
+      
+      // Remove closing ``` markers
+      cleanedText = cleanedText.replace(/\s*```$/, '');
+      
+      // Additional cleanup for any extra whitespace
+      cleanedText = cleanedText.trim();
+      
+      // Parse as JSON
+      return JSON.parse(cleanedText);
+    } catch (error) {
+      console.error('Error parsing cleaned JSON:', error);
+      console.error('Original text:', text);
+      throw new Error('Failed to parse response as JSON after cleaning');
+    }
+  };
+
   // Helper function to format attendee name
   const getAttendeeDisplayName = (attendee: Attendee) => {
     return `${attendee.first_name} ${attendee.last_name}`;
@@ -220,37 +253,96 @@ export default function EventDetails() {
     return typeof value === 'string' ? value : defaultValue;
   };
 
-  // Function to handle score button click - GET request to endpoint
+  // Function to handle score button click - POST request to server API
   const handleScoreClick = async () => {
     try {
       setScoreLoading(true);
-      console.log('Making GET request to score endpoint...');
-      console.log('Event ID:', eventId);
-      console.log('Event Name:', event?.name);
+      setScoreError(false); // Clear any previous errors
 
-      const response = await fetch('http://127.0.0.1/', {
-        method: 'GET',
+      const filterAttendees = attendees.map((att) => {
+        return {
+          id: att.id,
+          first_name: att.first_name,
+          last_name: att.last_name,
+          email: att.email,
+          company: att.company,
+          industry: att.industry,
+          interests: att.interests,
+          job_title: att.job_title,
+          networking_goals: att.networking_goals,
+          past_events: att.past_events
+        };
+      });
+
+      // Prepare the payload for our API route
+      const payload = {
+        eventRequirements: event?.requirements || {},
+        attendees: filterAttendees,
+        eventId: eventId,
+        eventName: event?.name
+      };
+
+      // Make request to our server API route
+      const response = await fetch(`/api/events/${eventId}/score`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(payload)
       });
 
-      console.log('Score endpoint response status:', response.status);
-      console.log('Score endpoint response ok:', response.ok);
-      console.log('Score endpoint response headers:', Object.fromEntries(response.headers.entries()));
-
-      // Check if response is JSON before parsing
-      const contentType = response.headers.get('content-type');
-      let result;
-      if (contentType && contentType.includes('application/json')) {
-        result = await response.json();
-      } else {
-        result = await response.text();
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      console.log('Score endpoint response data:', result);
+
+      const result = await response.json();
+
+      const scoringData = stripMarkdownAndParseJSON(result.data);
+
+      if (result.success && Array.isArray(scoringData)) {
+        // Update attendees with scores
+        const updatedAttendees = attendees.map(attendee => {
+          const scoreEntry = scoringData.find(
+            (entry: ScoringEntry) => entry.participant_id === attendee.id
+          );
+          if (scoreEntry) {
+            return {
+              ...attendee,
+              score: scoreEntry.score,
+              scoreExplanation: scoreEntry.explanation
+            };
+          }
+          return attendee;
+        });
+        
+        // Sort attendees by score (high to low), keeping attendees without scores at the end
+        const sortedAttendees = updatedAttendees.sort((a, b) => {
+          // If both have scores, sort by score (high to low)
+          if (typeof a.score === 'number' && typeof b.score === 'number') {
+            return b.score - a.score;
+          }
+          // If only a has a score, a comes first
+          if (typeof a.score === 'number' && typeof b.score !== 'number') {
+            return -1;
+          }
+          // If only b has a score, b comes first
+          if (typeof a.score !== 'number' && typeof b.score === 'number') {
+            return 1;
+          }
+          // If neither has a score, maintain original order (by registration date)
+          return 0;
+        });
+        
+        setAttendees(sortedAttendees);
+      } else {
+        const errorMsg = result.error || 'Failed to process scoring data';
+        console.error('Scoring failed:', errorMsg);
+        setScoreError(true);
+      }
+
     } catch (error) {
-      console.error('Error making GET request to score endpoint:', error);
+      console.error('Error making request to scoring API:', error);
+      setScoreError(true);
     } finally {
       setScoreLoading(false);
     }
@@ -343,13 +435,19 @@ export default function EventDetails() {
             <Card className="mt-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-medium text-gray-900">👑 Noble Attendees</h2>
-                <button 
-                  onClick={handleScoreClick}
-                  disabled={scoreLoading}
-                  className="px-3 py-1 text-sm font-medium text-purple-700 bg-purple-100 border border-purple-300 rounded-md hover:bg-purple-200 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {scoreLoading ? '⏳ Scoring...' : '📊 Score'}
-                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <button 
+                    onClick={handleScoreClick}
+                    disabled={scoreLoading}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      scoreError 
+                        ? 'text-red-700 bg-red-100 border border-red-300 hover:bg-red-200' 
+                        : 'text-purple-700 bg-purple-100 border border-purple-300 hover:bg-purple-200'
+                    }`}
+                  >
+                    {scoreLoading ? '⏳ Scoring...' : scoreError ? '⚠️ Retry Score' : '📊 Score'}
+                  </button>
+                </div>
               </div>
               <div className="space-y-3">
                 {attendeesLoading ? (
@@ -370,13 +468,37 @@ export default function EventDetails() {
                         )}
                       </div>
                       <div className="text-right">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            isCheckedIn(attendee) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
-                          }`}
-                        >
-                          {isCheckedIn(attendee) ? '👑 Present at Court' : '📜 Invited to Realm'}
-                        </span>
+                        <div className="flex items-center gap-2 mb-1">
+                          {(attendee.score !== undefined && attendee.score !== null && typeof attendee.score === 'number') && (
+                            <span 
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help relative group ${
+                                attendee.score >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                                attendee.score >= 60 ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                                'bg-red-100 text-red-800 border border-red-200'
+                              }`}
+                              title={attendee.scoreExplanation || 'Compatibility score explanation'}
+                            >
+                              🔮 {attendee.score}% Match
+                              {/* Tooltip */}
+                              {attendee.scoreExplanation && (
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 w-64 sm:w-80 md:w-96">
+                                  <div className="text-left leading-relaxed">
+                                    {attendee.scoreExplanation}
+                                  </div>
+                                  {/* Arrow */}
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                                </div>
+                              )}
+                            </span>
+                          )}
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              isCheckedIn(attendee) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                            }`}
+                          >
+                            {isCheckedIn(attendee) ? '👑 Present at Court' : '📜 Invited to Realm'}
+                          </span>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
                           Joined: {new Date(attendee.registration_date).toLocaleDateString()}
                         </p>
@@ -428,41 +550,41 @@ export default function EventDetails() {
                 <textarea
                   id="interests"
                   rows={3}
-                  defaultValue={getRequirementValue('interests', 'Magic, Enchantments, Royal Networking')}
+                  defaultValue={getRequirementValue('magical_abilities') || getRequirementValue('magical_specialties') || getRequirementValue('interests') || ''}
                   className="w-full px-3 py-2 border border-purple-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-purple-25"
-                  placeholder="Required Magical Interests (e.g., Magic, Enchantments, Royal Networking)"
+                  placeholder="Required Magical Abilities (e.g., Nature Magic, Forest Navigation, Animal Communication)"
                 />
                 
                 <textarea
                   id="location"
                   rows={3}
-                  defaultValue={getRequirementValue('preferredRealm', event?.location || 'Enchanted Forest Realm')}
+                  defaultValue={getRequirementValue('realm') || getRequirementValue('preferredRealm') || ''}
                   className="w-full px-3 py-2 border border-purple-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-purple-25"
-                  placeholder="Preferred Magical Realm (e.g., Enchanted Forest Realm)"
+                  placeholder="Preferred Magical Realm (e.g., Enchanted Forest, Fairy Tale Kingdoms)"
                 />
                 
                 <textarea
                   id="industry"
                   rows={3}
-                  defaultValue={getRequirementValue('characterBackground', 'Magic, Royal Court, Fairy Tale Adventures')}
+                  defaultValue={getRequirementValue('business_focus') || getRequirementValue('specializations') || getRequirementValue('characterBackground') || ''}
                   className="w-full px-3 py-2 border border-purple-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-purple-25"
-                  placeholder="Character Background (e.g., Magic, Royal Court, Fairy Tale Adventures)"
+                  placeholder="Focus Areas (e.g., Magical Enterprises, Heroic Leadership, Royal Protocol)"
                 />
                 
                 <textarea
-                  id="pastEvents"
+                  id="experience"
                   rows={3}
-                  defaultValue={getRequirementValue('pastEvents', 'Royal Ball 2024, Magic Workshop, Enchanted Forest Gathering')}
+                  defaultValue={getRequirementValue('experience_level') || ''}
                   className="w-full px-3 py-2 border border-purple-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-purple-25"
-                  placeholder="Past Magical Gatherings (e.g., Royal Ball 2024, Magic Workshop)"
+                  placeholder="Experience Level (e.g., all, beginner, intermediate, advanced)"
                 />
                 
                 <textarea
                   id="networkingGoals"
                   rows={3}
-                  defaultValue={getRequirementValue('networkingGoals', 'Seeking to connect with fellow magical beings, royal court members, and fairy tale characters to share enchanting stories and discover new adventures in the realm.')}
+                  defaultValue={getRequirementValue('networking_goals') || getRequirementValue('networkingGoals') || ''}
                   className="w-full px-3 py-2 border border-purple-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm resize-none bg-purple-25"
-                  placeholder="Royal Networking Goals - Describe your magical aspirations..."
+                  placeholder="Event Networking Goals - Describe the magical aspirations for this gathering..."
                 />
               </div>
             </Card>
