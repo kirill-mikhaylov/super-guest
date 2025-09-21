@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Card from '../components/Card';
+import { formatCurrency } from '@/utils/formatting';
 
 interface Event {
   id: string;
@@ -204,7 +205,7 @@ export default function Dashboard() {
 
   const stats = [
     { name: 'Total Attendees', value: totalAttendees.toLocaleString(), change: '+12%', changeType: 'increase' },
-    { name: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, change: '+8%', changeType: 'increase' },
+    { name: 'Revenue', value: formatCurrency(totalRevenue), change: '+8%', changeType: 'increase' },
     { name: 'Active Events', value: activeEvents.toString(), change: `${upcomingEvents} upcoming`, changeType: 'neutral' },
     { name: 'Total Events', value: events.length.toString(), change: 'All realms', changeType: 'neutral' },
   ];
@@ -272,7 +273,7 @@ export default function Dashboard() {
                               {event.current_attendees || 0}/{event.max_attendees || 0} characters attending
                             </span>
                             <span className="text-sm font-medium text-green-600">
-                              ${event.total_revenue || '0.00'}
+                              {formatCurrency(event.total_revenue)}
                             </span>
                           </div>
                         </div>

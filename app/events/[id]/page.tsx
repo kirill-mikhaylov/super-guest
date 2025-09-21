@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Card from '../../components/Card';
 import { supabase } from '@/utils/supabase/client';
+import { formatCurrency, formatNumber } from '@/utils/formatting';
 
 // Define types for better TypeScript support
 interface AgendaItem {
@@ -231,18 +232,6 @@ export default function EventDetails() {
   // Helper function to check if attendee is checked in
   const isCheckedIn = (attendee: Attendee) => {
     return attendee.status === 'attended' || !!attendee.check_in_time;
-  };
-
-  // Helper function to format numbers with commas
-  const formatNumber = (num: number | null | undefined): string => {
-    if (num === null || num === undefined) return '0';
-    return num.toLocaleString();
-  };
-
-  // Helper function to format currency
-  const formatCurrency = (amount: number | null | undefined): string => {
-    if (amount === null || amount === undefined) return '$0.00';
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Helper function to get requirement value safely
@@ -476,7 +465,6 @@ export default function EventDetails() {
                                 attendee.score >= 60 ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
                                 'bg-red-100 text-red-800 border border-red-200'
                               }`}
-                              title={attendee.scoreExplanation || 'Compatibility score explanation'}
                             >
                               🔮 {attendee.score}% Match
                               {/* Tooltip */}
