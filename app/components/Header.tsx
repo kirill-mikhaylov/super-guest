@@ -41,6 +41,9 @@ export default function Header() {
       setIsScrolled(scrollTop > 10);
     };
 
+    // Check initial scroll position on mount
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);

@@ -1,6 +1,36 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function Footer() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const checkLoginStatus = () => {
+      const loginStatus = localStorage.getItem('isLoggedIn');
+      setIsLoggedIn(loginStatus === 'true');
+    };
+
+    // Check on mount
+    checkLoginStatus();
+
+    // Listen for storage changes (login/logout from other tabs)
+    const handleStorageChange = () => {
+      checkLoginStatus();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Custom event for same-tab login/logout
+    window.addEventListener('loginStateChange', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('loginStateChange', handleStorageChange);
+    };
+  }, []);
+
   return (
     <footer className="bg-gray-50 border-t border-gray-200">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -27,11 +57,13 @@ export default function Footer() {
                   Home
                 </Link>
               </li>
-              <li>
-                <Link href="/login" className="text-base text-gray-500 hover:text-gray-900">
-                  Create Account
-                </Link>
-              </li>
+              {!isLoggedIn && (
+                <li>
+                  <Link href="/login" className="text-base text-gray-500 hover:text-gray-900">
+                    Create Account
+                  </Link>
+                </li>
+              )}
               <li>
                 <a href="#" className="text-base text-gray-500 hover:text-gray-900">
                   Event Templates
