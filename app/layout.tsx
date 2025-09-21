@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SuperGuest - Event Management Platform",
-  description: "Create events, track attendees, and discover new participants with our comprehensive event management platform",
+  title: "SuperGuest - Magical Event Management for All Realms",
+  description: "Host legendary gatherings, manage fairy tale characters, and discover magical attendees across all kingdoms. The only platform trusted by fairy godmothers, royal event planners, and reformed villains.",
 };
 
 export default function RootLayout({

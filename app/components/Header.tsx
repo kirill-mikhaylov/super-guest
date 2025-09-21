@@ -72,8 +72,10 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo / Brand */}
           <div className="flex-shrink-0">
-            <Link href={isLoggedIn ? "/dashboard" : "/"} className="text-xl font-bold text-gray-900 hover:text-gray-700 cursor-pointer transition-colors duration-200">
+            <Link href={isLoggedIn ? "/dashboard" : "/"} className="text-xl font-bold text-gray-900 hover:text-purple-700 cursor-pointer transition-colors duration-200 flex items-center gap-2">
+              <span className="text-2xl">✨</span>
               SuperGuest
+              <span className="text-sm text-gray-500 font-normal">for Fairy Tales</span>
             </Link>
           </div>
 
@@ -82,16 +84,16 @@ export default function Header() {
             {isClient && isLoggedIn ? (
               <button
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors duration-200"
+                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors duration-200"
               >
-                Sign Out
+                Leave the Realm 🚪
               </button>
             ) : isClient ? (
               <button
                 onClick={handleSignIn}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors duration-200"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors duration-200"
               >
-                Sign In
+                Enter the Realm ✨
               </button>
             ) : null}
           </div>

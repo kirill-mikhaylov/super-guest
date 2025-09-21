@@ -77,6 +77,7 @@ CREATE TABLE attendees (
     interests TEXT[],
     networking_goals TEXT,
     past_events TEXT[],
+    score INTEGER CHECK (score >= 0 AND score <= 100),
     
     -- Payment Information
     payment_status VARCHAR(20) DEFAULT 'pending',
