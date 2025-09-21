@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# super-guest
 
-## Getting Started
+This repository is a Next.js project bootstrapped with `create-next-app`. It includes the app source under the `app/` directory and a standalone landing page demo at the project root.
+# super-guest
 
-First, run the development server:
+This repository is a Next.js project bootstrapped with `create-next-app`. It contains the app in the `app/` directory.
+
+## Development (Next.js app)
+
+Install dependencies:
+
+```bash
+npm install
+# or
+pnpm install
+```
+
+Start the Next.js development server:
 
 ```bash
 npm run dev
 # or
-yarn dev
-# or
 pnpm dev
+# or
+yarn dev
 # or
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser to view the app. The main page is `app/page.tsx`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Standalone landing demo
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Preview the quick landing demo (root `index.html`):
 
-## Learn More
+```bash
+python3 -m http.server 8000
+# then open http://localhost:8000/index.html
+```
 
-To learn more about Next.js, take a look at the following resources:
+Notes:
+- `index.html` is a portable demo with inline CSS and JS.
+- The email capture form there is a frontend-only placeholder and does not POST to any backend.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Learn more
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js docs: https://nextjs.org/docs
+- Learn Next.js interactive tutorial: https://nextjs.org/learn
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy the Next.js app to Vercel or any platform that supports Next.js. See the Next.js deployment docs for details.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+If you'd like I can:
+
+- Integrate the `index.html` demo into the Next.js app under `app/`.
+- Add a serverless endpoint to accept email signups and wire the demo to it.
+
+Tell me which you'd prefer and I'll implement it.
+## Getting Started
