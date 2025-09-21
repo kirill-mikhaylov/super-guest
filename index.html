@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Super Guest — Fast, friendly guest sign-ins</title>
+    <meta name="description" content="A clean, accessible guest sign-in experience for events and venues." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      :root{
+        --bg:#0f1724;
+        --card:#0b1220;
+        --muted:#94a3b8;
+        --accent:#7c3aed;
+        --accent-2:#06b6d4;
+        --glass: rgba(255,255,255,0.04);
+        color-scheme: dark;
+      }
+      *{box-sizing:border-box}
+      html,body{height:100%}
+      body{
+        margin:0;
+        font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+        background:linear-gradient(180deg,#071024 0%, #001219 100%);
+        color:#e6eef8;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        line-height:1.4;
+      }
+      .container{max-width:1100px;margin:0 auto;padding:40px 20px}
+      header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+      .brand{display:flex;align-items:center;gap:12px}
+      .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+      .nav{display:flex;gap:16px;align-items:center}
+      .nav a{color:var(--muted);text-decoration:none;font-weight:600}
+      .cta{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:10px 14px;border-radius:10px;color:white;text-decoration:none;font-weight:700}
+
+      .hero{display:grid;grid-template-columns:1fr 420px;gap:36px;align-items:center;padding:54px 0}
+      .hero h1{font-size:clamp(28px,4vw,46px);margin:0 0 12px}
+      .hero p{color:var(--muted);margin:0 0 22px}
+
+      .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);padding:22px;border-radius:12px}
+      .form-row{display:flex;gap:8px}
+      input[type="email"]{flex:1;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+      button{background:var(--accent);border:0;padding:10px 14px;border-radius:8px;color:white;font-weight:700}
+
+      .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+      .feature h4{margin:0 0 6px}
+      .muted{color:var(--muted)}
+
+      footer{margin-top:64px;padding:30px 0;border-top:1px solid rgba(255,255,255,0.03);color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+
+      /* mobile */
+      @media (max-width:900px){
+        .hero{grid-template-columns:1fr;}
+        .features{grid-template-columns:1fr;}
+        .nav{display:none}
+        .mobile-nav-toggle{display:inline-flex}
+      }
+
+      .mobile-nav-toggle{display:none;background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:var(--muted)}
+      .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <div class="logo">SG</div>
+          <div>
+            <div style="font-weight:700">Super Guest</div>
+            <div class="muted" style="font-size:12px">Guest sign-ins, simplified</div>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="Main navigation">
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#docs">Docs</a>
+          <a class="cta" href="#signup">Get started</a>
+        </nav>
+
+        <button class="mobile-nav-toggle" aria-expanded="false" aria-controls="mobileMenu">Menu</button>
+      </header>
+
+      <main class="hero">
+        <section>
+          <h1>Fast, friendly guest sign-ins for events and venues</h1>
+          <p class="muted">Collect guest details, manage check-ins, and export reports. No bulky kiosk software — just a delightful web experience that works on any device.</p>
+
+          <div style="display:flex;gap:12px;align-items:center">
+            <a class="cta" href="#signup">Start free</a>
+            <a href="#demo" class="muted" style="text-decoration:underline;">See a demo</a>
+          </div>
+
+          <div class="features" id="features">
+            <div class="feature card">
+              <h4>Quick setup</h4>
+              <p class="muted">Onboard in minutes with a simple, guided flow and ready-made templates.</p>
+            </div>
+            <div class="feature card">
+              <h4>Works offline</h4>
+              <p class="muted">Cached data lets you sign in guests even without reliable connectivity.</p>
+            </div>
+            <div class="feature card">
+              <h4>Secure & private</h4>
+              <p class="muted">Data encryption at rest and configurable retention policies.</p>
+            </div>
+          </div>
+        </section>
+
+        <aside>
+          <div class="card">
+            <h3 style="margin-top:0">Join our beta</h3>
+            <p class="muted">Enter your email and we’ll reserve your spot. This is a demo form — no backend is connected.</p>
+            <form id="emailForm" style="margin-top:12px" onsubmit="return false;">
+              <div class="form-row">
+                <input type="email" id="email" placeholder="you@company.com" aria-label="Email address" required />
+                <button id="submitBtn">Reserve</button>
+              </div>
+              <div id="formMsg" class="muted" style="margin-top:10px;font-size:13px"></div>
+            </form>
+          </div>
+
+          <div class="card" style="margin-top:14px;display:flex;gap:12px;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-weight:700">Trusted by</div>
+              <div class="muted" style="font-size:13px">Concert halls · Venues · Corporates</div>
+            </div>
+            <div class="muted" style="font-size:22px;opacity:0.9">★ ★ ★ ★ ★</div>
+          </div>
+        </aside>
+      </main>
+
+      <footer>
+        <div>© <span id="year"></span> Super Guest</div>
+        <div>
+          <a href="#" class="muted" style="margin-right:14px">Privacy</a>
+          <a href="#" class="muted">Terms</a>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // Small behaviour: mobile menu (very small) and placeholder form handler
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      const mobileToggle = document.querySelector('.mobile-nav-toggle');
+      mobileToggle && mobileToggle.addEventListener('click', ()=>{
+        const nav = document.querySelector('.nav');
+        const expanded = mobileToggle.getAttribute('aria-expanded') === 'true';
+        mobileToggle.setAttribute('aria-expanded', String(!expanded));
+        nav.style.display = expanded ? 'none' : 'flex';
+        nav.style.flexDirection = 'column';
+        nav.style.position = 'absolute';
+        nav.style.right = '20px';
+        nav.style.top = '72px';
+        nav.style.background = 'var(--glass)';
+        nav.style.padding = '12px';
+      });
+
+      const form = document.getElementById('emailForm');
+      const email = document.getElementById('email');
+      const msg = document.getElementById('formMsg');
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        if(!email.checkValidity()){
+          msg.textContent = 'Please enter a valid email.';
+          return;
+        }
+        // simulate async success
+        msg.textContent = 'Reserving...';
+        setTimeout(()=>{
+          msg.textContent = 'Thanks — we saved your spot. We will email you when the beta opens.';
+          email.value='';
+        },800);
+      });
+    </script>
+  </body>
+</html>
